@@ -6,7 +6,7 @@
   <title>BCL-2 Inhibitors Database</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <style>
-    /* Clean beautiful style */
+    
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       margin: 0;
@@ -131,7 +131,7 @@
       <h1>BCL-2 Inhibitors Database</h1>
     </header>
 
-    <!-- Search -->
+
     <div class="search-bar">
       <input id="searchInput" type="search" placeholder="Search by name, target, phase, or notes (press Enter or click Search)">
       <button id="searchBtn"><i class="fas fa-search"></i> Search</button>
@@ -154,12 +154,10 @@
   </div>
 
   <script>
-    /* -------------------------
-       DATASET (SEED_COMPOUNDS)
-       Add or edit objects here. New entries requested by you are included below (all as 'failed').
-       ------------------------- */
+
+    
     const SEED_COMPOUNDS = [
-      // existing examples
+      
       {
         id: "venetoclax",
         name: "Venetoclax",
@@ -172,7 +170,7 @@
         pdb: [], refs: ["https://pubchem.ncbi.nlm.nih.gov/compound/Venetoclax"]
       },
 
-      // previously included failed examples
+      
       { id:"s63845", name:"S63845", category:"failed", overview:"Potent, selective MCL-1 inhibitor; PDB:5LOF", targets:["MCL-1"], lipinski:{mw:"≈500-600"}, properties:{solubility:"Moderate/low"}, toxicity:"Investigational", pdb:["5LOF"], refs:["https://www.rcsb.org/structure/5LOF"] },
       { id:"navitoclax", name:"Navitoclax (ABT-263)", category:"failed", overview:"Oral ABT-737 derivative; dose-limiting thrombocytopenia.", targets:["BCL-2","BCL-XL","BCL-w"], lipinski:{mw:"~974"}, toxicity:"Severe platelet toxicity", pdb:["4QNQ","4LVT"], refs:[] },
       { id:"obatoclax", name:"Obatoclax (GX15-070)", category:"failed", overview:"Prodigiosin derivative; pan-BCL activity; neurologic AEs reported.", targets:["Pan-BCL"], lipinski:{mw:"~401"}, toxicity:"Neurologic AEs", refs:[] },
@@ -329,7 +327,7 @@
         refs: []
       },
 
-      // MCL-1 and other programs (from your list)
+      
       { id:"s64315_mik665", name:"MIK665 (S64315)", category:"failed", overview:"MCL-1 inhibitor — Phase I (terminated) due to severe cardiac toxicity.", targets:["MCL-1"], phase:"Phase I (terminated)", status_note:"Severe cardiac toxicity", refs:[] },
       { id:"azd5991", name:"AZD5991", category:"failed", overview:"MCL-1 inhibitor — Phase I (terminated 2022) due to cardiotoxicity signals.", targets:["MCL-1"], phase:"Phase I (terminated 2022)", status_note:"Cardiotoxicity", refs:[] },
       { id:"amg176_tapotoclax", name:"Tapotoclax (AMG176)", category:"failed", overview:"MCL-1 inhibitor — Phase I terminated; cardiotoxicity reported.", targets:["MCL-1"], phase:"Phase I (terminated)", status_note:"Cardiotoxicity", refs:[] },
@@ -339,10 +337,8 @@
       { id:"prt1419", name:"PRT1419", category:"failed", overview:"MCL-1 inhibitor — Phase I (active) ongoing at time of reporting.", targets:["MCL-1"], phase:"Phase I (active)", status_note:"Ongoing", refs:[] }
     ];
 
-    /* -------------------------
-       RENDERING + SEARCH
-       ------------------------- */
-    let compounds = SEED_COMPOUNDS.slice(); // read-only copy
+    
+    let compounds = SEED_COMPOUNDS.slice();
     const approvedList = document.getElementById('approvedList');
     const failedList = document.getElementById('failedList');
     const noResults = document.getElementById('noResults');
@@ -471,9 +467,7 @@
       return String(s).replace(/["']/g, c => c === '"' ? '&quot;' : '&#39;');
     }
 
-    /* -------------------------
-       SEARCH LOGIC
-       ------------------------- */
+    
     function applySearch(query) {
       const q = (query || '').trim().toLowerCase();
       if (!q) {
@@ -499,8 +493,8 @@
     clearBtn.addEventListener('click', () => { searchInput.value=''; applySearch(''); });
     searchInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') applySearch(searchInput.value); });
 
-    // initial render
     renderList(compounds);
   </script>
 </body>
 </html>
+
