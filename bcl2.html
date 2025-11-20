@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BCL-2 Inhibitors Database</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    /* Clean beautiful style */
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #333;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+      background: rgba(255, 255, 255, 0.95);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+    }
+    header h1 {
+      margin: 0;
+      font-size: 2.1em;
+      color: #2c3e50;
+    }
+
+    .search-bar {
+      margin: 16px 0;
+      display:flex;
+      gap:8px;
+      align-items:center;
+      justify-content:center;
+    }
+    .search-bar input[type="search"]{
+      width: 60%;
+      min-width: 240px;
+      padding:10px 12px;
+      border-radius:10px;
+      border:1px solid rgba(0,0,0,0.08);
+      font-size:15px;
+    }
+    .search-bar button {
+      padding:10px 14px;
+      border-radius:10px;
+      border:none;
+      background:#23395b;
+      color:#fff;
+      cursor:pointer;
+      font-weight:600;
+    }
+
+    .section {
+      background: rgba(255, 255, 255, 0.95);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.14);
+      margin-bottom: 18px;
+    }
+    .section h2 {
+      color: #2c3e50;
+      border-bottom: 3px solid #3498db;
+      padding-bottom: 10px;
+      margin-bottom: 16px;
+    }
+
+    .molecule-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .molecule-list li {
+      background: #f8f9fa;
+      margin: 10px 0;
+      padding: 14px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.18s ease, transform 0.12s ease;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+    }
+    .molecule-list li:hover {
+      background: #e9ecef;
+      transform: translateY(-3px);
+    }
+
+    .molecule-left {
+      display:flex;
+      flex-direction:column;
+    }
+    .molecule-name { font-weight:700; font-size:1.02em; color:#23303a; }
+    .molecule-targets { font-size:0.92em; color:#6b7280; margin-top:6px; }
+
+    .molecule-right { display:flex; gap:10px; align-items:center; }
+    .pill {
+      font-size:12px; padding:6px 10px; border-radius:999px; background:#e9eef6; color:#12324a; font-weight:700;
+    }
+    .chev { color:#6b7280; }
+
+    .details {
+      margin-top:12px;
+      padding:16px;
+      background: #f1f3f4;
+      border-radius: 10px;
+      display: none;
+      line-height:1.45;
+    }
+    .details.show { display:block; }
+
+    ul.props { margin-left:20px; }
+    .toxicity { color:#e74c3c; font-weight:700; }
+
+    .no-data { text-align:center; color:#f3f6fb; margin-top:12px; font-style:italic; }
+
+    footer { text-align:center; color:#e8eef8; margin-top:18px; font-size:13px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>BCL-2 Inhibitors Database</h1>
+    </header>
+
+    <!-- Search -->
+    <div class="search-bar">
+      <input id="searchInput" type="search" placeholder="Search by name, target, phase, or notes (press Enter or click Search)">
+      <button id="searchBtn"><i class="fas fa-search"></i> Search</button>
+      <button id="clearBtn" style="background:#95a5a6;">Clear</button>
+    </div>
+
+    <div id="approvedSection" class="section">
+      <h2>Approved BCL-2 Inhibitors</h2>
+      <ul id="approvedList" class="molecule-list"></ul>
+    </div>
+
+    <div id="failedSection" class="section">
+      <h2>Clinically Failed / Investigational BCL-2 Inhibitors</h2>
+      <ul id="failedList" class="molecule-list"></ul>
+    </div>
+
+    <div id="noResults" class="no-data" style="display:none">No compounds match your search.</div>
+
+    <footer>Tip: edit the <code>SEED_COMPOUNDS</code> array in this file to change shown data before uploading.</footer>
+  </div>
+
+  <script>
+    /* -------------------------
+       DATASET (SEED_COMPOUNDS)
+       Add or edit objects here. New entries requested by you are included below (all as 'failed').
+       ------------------------- */
+    const SEED_COMPOUNDS = [
+      // existing examples
+      {
+        id: "venetoclax",
+        name: "Venetoclax",
+        category: "approved",
+        overview: "Venetoclax (Venclexta) — FDA-approved for certain hematologic malignancies including CLL and AML.",
+        targets: ["BCL-2"],
+        lipinski: { mw: "868.44 Da (violates)", logP: "~6.5" },
+        properties: { formula: "C45H50ClN7O7S", solubility: "Low; formulation-dependent" },
+        toxicity: "Tumor lysis syndrome risk and hematologic AEs",
+        pdb: [], refs: ["https://pubchem.ncbi.nlm.nih.gov/compound/Venetoclax"]
+      },
+
+      // previously included failed examples
+      { id:"s63845", name:"S63845", category:"failed", overview:"Potent, selective MCL-1 inhibitor; PDB:5LOF", targets:["MCL-1"], lipinski:{mw:"≈500-600"}, properties:{solubility:"Moderate/low"}, toxicity:"Investigational", pdb:["5LOF"], refs:["https://www.rcsb.org/structure/5LOF"] },
+      { id:"navitoclax", name:"Navitoclax (ABT-263)", category:"failed", overview:"Oral ABT-737 derivative; dose-limiting thrombocytopenia.", targets:["BCL-2","BCL-XL","BCL-w"], lipinski:{mw:"~974"}, toxicity:"Severe platelet toxicity", pdb:["4QNQ","4LVT"], refs:[] },
+      { id:"obatoclax", name:"Obatoclax (GX15-070)", category:"failed", overview:"Prodigiosin derivative; pan-BCL activity; neurologic AEs reported.", targets:["Pan-BCL"], lipinski:{mw:"~401"}, toxicity:"Neurologic AEs", refs:[] },
+
+      // ---------- New entries requested (added to "failed") ----------
+      {
+        id: "sonrotoclax_bgb11417",
+        name: "Sonrotoclax (BGB-11417)",
+        category: "failed",
+        overview: "Phase III (ongoing, CLL/SLL). BCL-2 inhibitor under advanced evaluation.",
+        targets: ["BCL-2"],
+        phase: "Phase III (ongoing, CLL/SLL)",
+        status_note: "Active (Phase III)",
+        refs: []
+      },
+      {
+        id: "lisaftoclax_apg2575",
+        name: "Lisaftoclax (APG-2575)",
+        category: "failed",
+        overview: "Phase III (CLL/SLL). BCL-2 inhibitor in late-stage clinical testing.",
+        targets: ["BCL-2"],
+        phase: "Phase III (CLL/SLL)",
+        status_note: "Active (Phase III)",
+        refs: []
+      },
+      {
+        id: "abbv_453",
+        name: "ABBV-453",
+        category: "failed",
+        overview: "BCL-2 targeted program; Phase I but recorded as Terminated.",
+        targets: ["BCL-2"],
+        phase: "Phase I",
+        status_note: "Terminated",
+        refs: []
+      },
+      {
+        id: "abbv_623",
+        name: "ABBV-623",
+        category: "failed",
+        overview: "BCL-2 program moved from preclinical to terminated; halted early.",
+        targets: ["BCL-2"],
+        phase: "Preclinical → Terminated",
+        status_note: "Halted early",
+        refs: []
+      },
+      {
+        id: "s55746_bcl201",
+        name: "S55746 (BCL201)",
+        category: "failed",
+        overview: "Phase I (completed) — reported well tolerated with modest efficacy.",
+        targets: ["BCL-2"],
+        phase: "Phase I (completed)",
+        status_note: "Well tolerated; modest efficacy",
+        refs: []
+      },
+      {
+        id: "s65487_vob560",
+        name: "S65487 (VOB560)",
+        category: "failed",
+        overview: "Phase I (halted). Development stopped by sponsor (Novartis).",
+        targets: ["BCL-2"],
+        phase: "Phase I (halted)",
+        status_note: "Development stopped",
+        refs: []
+      },
+      {
+        id: "fcn_338_loxo_338",
+        name: "FCN-338 / LOXO-338",
+        category: "failed",
+        overview: "Phase I — terminated by Lilly in many regions; ongoing programs reported in China. Halted by Lilly in 2022.",
+        targets: ["BCL-2"],
+        phase: "Phase I (terminated by Lilly; ongoing in China)",
+        status_note: "Halted by Lilly in 2022",
+        refs: []
+      },
+      {
+        id: "bgb_21447",
+        name: "BGB-21447",
+        category: "failed",
+        overview: "Early clinical (Phase I) BCL-2 program; ongoing at time of reporting.",
+        targets: ["BCL-2"],
+        phase: "Phase I",
+        status_note: "Ongoing",
+        refs: []
+      },
+      {
+        id: "zn_d5",
+        name: "ZN-d5",
+        category: "failed",
+        overview: "Phase I/II (terminated) — development halted by sponsor.",
+        targets: ["BCL-2"],
+        phase: "Phase I/II (terminated)",
+        status_note: "Sponsor discontinued",
+        refs: []
+      },
+      {
+        id: "lp_108_lacutoclax",
+        name: "Lacutoclax (LP-108)",
+        category: "failed",
+        overview: "Phase I/II BCL-2 inhibitor program — active in early clinical testing.",
+        targets: ["BCL-2"],
+        phase: "Phase I/II",
+        status_note: "Active",
+        refs: []
+      },
+      {
+        id: "tqb3909",
+        name: "TQB3909",
+        category: "failed",
+        overview: "Phase I (China) — BCL-2 inhibitor in early clinical evaluation.",
+        targets: ["BCL-2"],
+        phase: "Phase I (China)",
+        status_note: "Active",
+        refs: []
+      },
+      {
+        id: "azd4320_azd0466",
+        name: "AZD4320 / AZD0466",
+        category: "failed",
+        overview: "BCL-2 / BCL-XL programs — Phase I terminated, thrombocytopenia observed.",
+        targets: ["BCL-2","BCL-XL"],
+        phase: "Phase I (terminated)",
+        status_note: "Thrombocytopenia",
+        refs: []
+      },
+      {
+        id: "pelcitoclax_apg1252",
+        name: "Pelcitoclax (APG-1252)",
+        category: "failed",
+        overview: "Dual BCL-2/BCL-XL inhibitor — Phase I/II program; active clinical evaluation ongoing.",
+        targets: ["BCL-2","BCL-XL"],
+        phase: "Phase I/II",
+        status_note: "Active",
+        refs: []
+      },
+      {
+        id: "mirzotamab_clezutoclax_abbv155",
+        name: "Mirzotamab Clezutoclax (ABBV-155, ADC)",
+        category: "failed",
+        overview: "BCL-XL ADC program — Phase I; reported as Terminated.",
+        targets: ["BCL-XL (ADC)"],
+        phase: "Phase I",
+        status_note: "Terminated",
+        refs: []
+      },
+      {
+        id: "abbv_637_adc",
+        name: "ABBV-637 (ADC)",
+        category: "failed",
+        overview: "BCL-XL ADC program — Phase I; terminated.",
+        targets: ["BCL-XL (ADC)"],
+        phase: "Phase I",
+        status_note: "Terminated",
+        refs: []
+      },
+
+      // MCL-1 and other programs (from your list)
+      { id:"s64315_mik665", name:"MIK665 (S64315)", category:"failed", overview:"MCL-1 inhibitor — Phase I (terminated) due to severe cardiac toxicity.", targets:["MCL-1"], phase:"Phase I (terminated)", status_note:"Severe cardiac toxicity", refs:[] },
+      { id:"azd5991", name:"AZD5991", category:"failed", overview:"MCL-1 inhibitor — Phase I (terminated 2022) due to cardiotoxicity signals.", targets:["MCL-1"], phase:"Phase I (terminated 2022)", status_note:"Cardiotoxicity", refs:[] },
+      { id:"amg176_tapotoclax", name:"Tapotoclax (AMG176)", category:"failed", overview:"MCL-1 inhibitor — Phase I terminated; cardiotoxicity reported.", targets:["MCL-1"], phase:"Phase I (terminated)", status_note:"Cardiotoxicity", refs:[] },
+      { id:"amg397_murizatoclax", name:"Murizatoclax (AMG397)", category:"failed", overview:"MCL-1 inhibitor — Phase I terminated; cardiotoxicity reported.", targets:["MCL-1"], phase:"Phase I (terminated)", status_note:"Cardiotoxicity", refs:[] },
+      { id:"zamzetoclax_gs_9716", name:"Zamzetoclax (GS-9716)", category:"failed", overview:"MCL-1 inhibitor — Phase I terminated; halted (toxicity/efficacy unclear).", targets:["MCL-1"], phase:"Phase I (terminated)", status_note:"Halted", refs:[] },
+      { id:"abbv_467_mcl1", name:"ABBV-467", category:"failed", overview:"MCL-1 inhibitor — Phase I terminated with reports of severe toxicity.", targets:["MCL-1"], phase:"Phase I (terminated)", status_note:"Severe toxicity", refs:[] },
+      { id:"prt1419", name:"PRT1419", category:"failed", overview:"MCL-1 inhibitor — Phase I (active) ongoing at time of reporting.", targets:["MCL-1"], phase:"Phase I (active)", status_note:"Ongoing", refs:[] }
+    ];
+
+    /* -------------------------
+       RENDERING + SEARCH
+       ------------------------- */
+    let compounds = SEED_COMPOUNDS.slice(); // read-only copy
+    const approvedList = document.getElementById('approvedList');
+    const failedList = document.getElementById('failedList');
+    const noResults = document.getElementById('noResults');
+    const searchInput = document.getElementById('searchInput');
+    const searchBtn = document.getElementById('searchBtn');
+    const clearBtn = document.getElementById('clearBtn');
+
+    function renderList(data) {
+      approvedList.innerHTML = '';
+      failedList.innerHTML = '';
+      const approved = data.filter(d => d.category === 'approved');
+      const failed = data.filter(d => d.category !== 'approved'); // anything else -> failed/investigational
+
+      if (approved.length === 0) approvedList.innerHTML = '<li class="no-data">No approved inhibitors in dataset.</li>';
+      else approved.forEach(c => renderCompound(c, approvedList));
+
+      if (failed.length === 0) failedList.innerHTML = '<li class="no-data">No failed/investigational inhibitors in dataset.</li>';
+      else failed.forEach(c => renderCompound(c, failedList));
+
+      noResults.style.display = (data.length === 0) ? 'block' : 'none';
+    }
+
+    function renderCompound(item, container) {
+      const li = document.createElement('li');
+      li.className = 'molecule-item';
+      li.dataset.id = item.id;
+
+      const left = document.createElement('div');
+      left.className = 'molecule-left';
+      const nameDiv = document.createElement('div');
+      nameDiv.className = 'molecule-name';
+      nameDiv.textContent = item.name;
+      const targDiv = document.createElement('div');
+      targDiv.className = 'molecule-targets';
+      targDiv.textContent = (item.targets || []).join(', ');
+
+      left.appendChild(nameDiv);
+      left.appendChild(targDiv);
+
+      const right = document.createElement('div');
+      right.className = 'molecule-right';
+      const pill = document.createElement('div');
+      pill.className = 'pill';
+      pill.textContent = item.category === 'approved' ? 'Approved' : 'Failed / Investigational';
+      const chev = document.createElement('div'); chev.className = 'chev'; chev.innerHTML = '<i class="fas fa-chevron-right"></i>';
+
+      right.appendChild(pill);
+      right.appendChild(chev);
+
+      li.appendChild(left);
+      li.appendChild(right);
+
+      const details = document.createElement('div');
+      details.className = 'details';
+      details.id = `${item.id}_details`;
+      details.innerHTML = buildDetailsHtml(item);
+
+      li.addEventListener('click', () => {
+        // toggle details; close others
+        document.querySelectorAll('.details').forEach(d => d.classList.remove('show'));
+        details.classList.toggle('show');
+        if (details.classList.contains('show')) details.scrollIntoView({behavior:'smooth', block:'center'});
+      });
+
+      container.appendChild(li);
+      container.appendChild(details);
+    }
+
+    function buildDetailsHtml(item) {
+      const lip = item.lipinski ? `
+        <h4>Lipinski's Rule of Five</h4>
+        <ul class="props">
+          <li><strong>MW:</strong> ${escapeHtml(item.lipinski.mw || '—')}</li>
+          <li><strong>LogP:</strong> ${escapeHtml(item.lipinski.logP || item.lipinski.logp || '—')}</li>
+          <li><strong>HBD:</strong> ${escapeHtml(item.lipinski.hbd || '—')}</li>
+          <li><strong>HBA:</strong> ${escapeHtml(item.lipinski.hba || '—')}</li>
+        </ul>` : '';
+
+      const props = item.properties ? `
+        <h4>Physicochemical Properties</h4>
+        <ul class="props">
+          ${item.properties.formula ? `<li><strong>Formula:</strong> ${escapeHtml(item.properties.formula)}</li>` : ''}
+          ${item.properties.solubility ? `<li><strong>Solubility:</strong> ${escapeHtml(item.properties.solubility)}</li>` : ''}
+        </ul>` : '';
+
+      const phase = item.phase ? `<p><strong>Phase:</strong> ${escapeHtml(item.phase)}</p>` : (item.phase === undefined ? '' : '');
+      const status = item.status_note ? `<p><strong>Status:</strong> ${escapeHtml(item.status_note)}</p>` : '';
+      const targets = item.targets && item.targets.length ? `<p><strong>Targets:</strong> ${escapeHtml(item.targets.join(', '))}</p>` : '';
+      const overview = item.overview ? `<p>${escapeHtml(item.overview)}</p>` : '';
+      const tox = item.toxicity ? `<p class="toxicity"><strong>Toxicity:</strong> ${escapeHtml(item.toxicity)}</p>` : '';
+      const pds = item.pdb && item.pdb.length ? `<p><strong>PDB IDs:</strong> ${escapeHtml(item.pdb.join(', '))}</p>` : '';
+      const refs = (item.refs && item.refs.length) ? `<h4>References</h4>${renderRefs(item.refs)}` : '';
+
+      return `
+        <h3>${escapeHtml(item.name)}</h3>
+        ${overview}
+        ${targets}
+        ${phase}
+        ${status}
+        ${lip}
+        ${props}
+        ${tox}
+        ${pds}
+        ${refs}
+      `;
+    }
+
+    function renderRefs(arr) {
+      return '<div class="props">' + arr.map(r => {
+        const t = String(r).trim();
+        if (!t) return '';
+        if (/^https?:\/\//i.test(t)) {
+          const label = t.length > 80 ? t.slice(0,77) + '...' : t;
+          return `<div><a href="${escapeHtmlAttr(t)}" target="_blank" rel="noopener noreferrer">${escapeHtml(label)}</a></div>`;
+        }
+        return `<div>${escapeHtml(t)}</div>`;
+      }).join('') + '</div>';
+    }
+
+    function escapeHtml(s) {
+      if (s === null || s === undefined) return '';
+      return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+    }
+    function escapeHtmlAttr(s) {
+      if (s === null || s === undefined) return '';
+      return String(s).replace(/["']/g, c => c === '"' ? '&quot;' : '&#39;');
+    }
+
+    /* -------------------------
+       SEARCH LOGIC
+       ------------------------- */
+    function applySearch(query) {
+      const q = (query || '').trim().toLowerCase();
+      if (!q) {
+        renderList(compounds);
+        return;
+      }
+      const filtered = compounds.filter(item => {
+        const hay = [
+          item.name,
+          (item.targets||[]).join(' '),
+          item.overview || '',
+          item.phase || '',
+          item.status_note || '',
+          item.toxicity || '',
+          (item.refs||[]).join(' ')
+        ].join(' ').toLowerCase();
+        return hay.includes(q);
+      });
+      renderList(filtered);
+    }
+
+    searchBtn.addEventListener('click', () => applySearch(searchInput.value));
+    clearBtn.addEventListener('click', () => { searchInput.value=''; applySearch(''); });
+    searchInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') applySearch(searchInput.value); });
+
+    // initial render
+    renderList(compounds);
+  </script>
+</body>
+</html>
